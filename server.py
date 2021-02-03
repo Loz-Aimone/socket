@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-import socket
+import socket #importiamo il pacchetto socket
 
 
 
-SERVER_ADDRESS = '127.0.0.1'
+SERVER_ADDRESS = '127.0.0.1' #indirizzo server
 
-SERVER_PORT = 22224
+SERVER_PORT = 22224 #porta server
 
 sock_listen = socket.socket()
 
@@ -15,30 +15,30 @@ sock_listen.bind((SERVER_ADDRESS, SERVER_PORT))
 
 sock_listen.listen(5)
 
-print("Server in ascolto su %s." % str((SERVER_ADDRESS, SERVER_PORT)))
+print("Server in ascolto su %s." % str((SERVER_ADDRESS, SERVER_PORT))) #Il server in ascolto, è in grado richieste di connessione
 
 
-while True:
-    sock_service, addr_client = sock_listen.accept()
+while True: #se il server in ascolto esegue i comandi sottostanti
+    sock_service, addr_client = sock_listen.accept() #accetta la connessione dal client, e rimane in ascolto per ricevere i dati
     print("\nConnessione ricevuta da " + str(addr_client))
     print("\nAspetto di ricevere i dati ")
-    contConn=0
-    while True:
-        dati = sock_service.recv(2048)
-        contConn+=1
-        if not dati:
+    contConn=0 #inizializza il contatore
+    while True: #se la connessione è attiva esegue i comandi sottostanti
+        dati = sock_service.recv(2048) #aspetta la richiesta del client
+        contConn+=1 #il contatore incrementa di 1
+        if not dati: #controlla che i dati abbiano un valore 
             print("Fine dati dal client. Reset")
-            break
+            break #se dati non ha valore chiudo la connessione 
         
-        dati = dati.decode()
+        dati = dati.decode()#se dati ha valore lo decodifica
         print("Ricevuto: '%s'" % dati)
-        if dati=='0':
+        if dati=='0': 
             print("Chiudo la connessione con " + str(addr_client))
-            break
-        dati = "Risposta a : " + str(addr_client) + ". Il valore del contatore è : " + str(contConn)
+            break #se dati ha valore 0 chiudo la connessione
+        dati = "Risposta a : " + str(addr_client) + ". Il valore del contatore è : " + str(contConn) #altrimenti resituisce al client il valore della variabile contConn
 
-        dati = dati.encode()
+        dati = dati.encode() #codifica la risposta da inviare
 
-        sock_service.send(dati)
+        sock_service.send(dati) #invia i dati codificati
 
-    sock_service.close()
+    sock_service.close() #chiusura della connessione
