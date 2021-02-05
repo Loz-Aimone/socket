@@ -35,10 +35,23 @@ while True: #se il server in ascolto esegue i comandi sottostanti
         if dati=='0': 
             print("Chiudo la connessione con " + str(addr_client))
             break #se dati ha valore 0 chiudo la connessione
-        dati = "Risposta a : " + str(addr_client) + ". Il valore del contatore è : " + str(contConn) #altrimenti resituisce al client il valore della variabile contConn
 
+        operazione, primo, secondo = dati.split(";")#split
+        #Vari if per selezionare l'operazione che il client ha inserito
+        if operazione == "piu":
+            risultato = int(primo) + int(secondo)
+        if operazione == "meno":
+            risultato = int(primo) - int(secondo)
+        if operazione == "per":
+            risultato = int(primo) * int(secondo)
+        if operazione == "diviso":
+            risultato = int(primo) / int(secondo)
+
+        dati = "Il risultato dell'operazione: "+operazione +" tra "+primo+" e "+secondo+" è: "+str(risultato)#output
+        
         dati = dati.encode() #codifica la risposta da inviare
 
         sock_service.send(dati) #invia i dati codificati
 
     sock_service.close() #chiusura della connessione
+
