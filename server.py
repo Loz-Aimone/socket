@@ -1,52 +1,78 @@
 #!/usr/bin/env python3
-import socket #importiamo il pacchetto socket
-
-SERVER_ADDRESS = '127.0.0.1' #indirizzo server
-SERVER_PORT = 22224 #porta server
-
-def ricevi_comandi(sock_listen): #la funzione riceve la socket connessa al server e la utilizza per accettare le richieste di connessione e per ognuna crea una socket per i dati (sock_service) da cui ricevere le richieste e inviare le risposte
-    while True: #se il server è in ascolto esegue i comandi
-        sock_service, addr_client = sock_listen.accept() #acetta la connessione con il client e rimane in ascolto per ricevere i dati
-        print("\nConnessione ricevuta da " + str(addr_client))
-        print("\nAspetto di ricevere i dati ")
-        contConn=0 #inizializza il contatore
-        while True: #se la connessione è attiva esegue i comandi
-            dati = sock_service.recv(2048) #aspetta la richiesta dal client
-            contConn+=1 #aumenta il contatore di 1
-            if not dati: #controlla che dai abbia un valore
-                print("Fine dati dal client. Reset")
-                break #se dati non ha valore chiude la connessione
-            
-            dati = dati.decode() #se dati ha valore lo decodifica
-            print("Ricevuto: '%s'" % dati) 
-            if dati=='0': 
-                print("Chiudo la connessione con " + str(addr_client))
-                break #se dati ha valore '0' chiude la connessione
-            
-            operazione, n1, n2 = dati.split(";") #.split divide la stringa al carattere indicato#Vari if per selezionare l'operazione che il client ha inserito
-            if operazione == "piu": #controllo operazione +
-                risultato = int(n1) + int(n2)
-            if operazione == "meno": #controllo operazione -
-                risultato = int(n1) - int(n2)
-            if operazione == "per": #controllo operazione *
-                risultato = int(n1) * int(n2)
-            if operazione == "diviso": #controllo operazione /
-                risultato = int(n1) / int(n2)
-
-            dati = "Il risultato è: " + str(risultato) #output dell'operazione
-
-            dati = dati.encode() #codifica la risposta
-
-            sock_service.send(dati) #invia i dati codificati
-    sock_service.close() #fine ascolto del server
-
-def avvia_server(indirizzo,porta): #crea un endpoint di ascolto (sock_listen) dal quale accettare connessioni in entrata
-    sock_listen = socket.socket() #
-    sock_listen.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) #
-    sock_listen.bind((indirizzo, porta)) #
-    sock_listen.listen(5) #
-    print("Server in ascolto su %s." % str((indirizzo, porta))) #il server è in ascolto e in grado di ricevere richieste di connessione
-    ricevi_comandi(sock_listen)
-
-if __name__=='__main__': #consente al nostro codice di capire se stia venendo eseguito come script a se stante, o se è stato richiamato come modulo da qualche programma per usare una o più delle sue varie funzioni e classi
-    avvia_server(SERVER_ADDRESS,SERVER_PORT)
+#from -- import
+import socket
+from threading import Thread
+#variables
+SERVER_ADDRESS = '127.0.0.1'
+SERVER_PORT = 22224
+sock_listen = socket.socket()
+#functions
+def socket_listen(sock_listen, SERVER_ADDRESS, SERVER_PORT):#start socket_listen
+    #variables
+    #code
+    sock_listen.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    sock_listen.bind((SERVER_ADDRESS, SERVER_PORT))
+    sock_listen.listen(5)
+    print("Server listening on: %s" % str((SERVER_ADDRESS, SERVER_PORT)))#taking and printing the info on the server
+#end socket_listen
+def connected (addr_client):#start connected
+    #variables
+    #code
+    print("\nConnection received from " + str(addr_client))#printing that the connection is ok with the connection info
+    print("\nCreating threads for manage the requests")
+    print("Waiting for receive data ")
+#end connected
+def operation (sock_service, addr_client):#start operation
+    #variables
+    #code
+    while True:#start while
+        data = sock_service.recv(2048)
+        if not data:#start if; control if the data is received or not
+            print("End data client. Reset")
+            break
+        #end if
+        data = data.decode()#decoding the data received
+        print("\nReceived from " +  str(addr_client) + ": '%s'" %data)
+        if data=='0':#start if; control data input, if 0 -> closing connection
+            print("Closing connection with: " + str(addr_client))
+            break
+        #end if
+        separator = data.split(';')
+        if separator[0] == "piu":#start if; ctrl the operator with 'piu'
+            ris = (float(separator[1]) + float(separator[2]))
+        #end if
+        if separator[0] == "meno":#ctrl the operator with 'meno'
+            ris = (float(separator[1]) - float(separator[2]))
+        #end if
+        if separator[0] == "per":#ctrl the operator with 'per'
+            ris = (float(separator[1]) * float(separator[2]))
+        #end if
+        if separator[0] == "diviso":#ctrl the operator with 'diviso'
+            if separator[2] == '0':#ctrl the zero case (as number to be divided) 
+                ris = str(separator[1]) + " / " + str(separator[2]) +  " is not possible"
+                data = "Answer to: " + str(addr_client) + ".\n" + str(ris)
+            else:
+                ris = (float(separator[1]) / float(separator[2]))
+            #end if - else
+        #end if
+        data = "Answer to: " + str(addr_client) + ".\n The result between " + str(separator[1]) + " and " + str(separator[2]) + " with the " + str(separator[0]) + " is: " + str(ris)
+        data = data.encode()#encoding the data with the result
+        sock_service.send(data)#sending the incoding data to the server
+    #end while
+#end operation
+def receiving_connections(sock_listen):#start receiving_connections
+    #variables
+    #code
+    socket_listen(sock_listen, SERVER_ADDRESS, SERVER_PORT)#calling the function socket_listen
+    while True:#start while
+        sock_service, addr_client = sock_listen.accept()
+        connected(addr_client)#calling the function connected
+        try:
+            Thread(target = operation, args = (sock_service, addr_client)).start()#creating the thread
+        except:
+            print("The thread doesn't run")
+            sock_service.close()
+    #end while
+#end receiving_connections
+#code
+receiving_connections(sock_listen)#calling the function receiving_connections
