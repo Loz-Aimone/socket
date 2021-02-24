@@ -1,4 +1,3 @@
-
 import socket
 from threading import Thread
 
@@ -11,7 +10,7 @@ def socket_listen(sock_listen, SERVER_ADDRESS, SERVER_PORT):#parte il  socket_li
     sock_listen.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     sock_listen.bind((SERVER_ADDRESS, SERVER_PORT))
     sock_listen.listen(5)
-    print("Il server ascolta su: " % str((SERVER_ADDRESS, SERVER_PORT)))
+    print("Il server ascolta su: " + str((SERVER_ADDRESS, SERVER_PORT)))
 
 def connected (addr_client):#parte la connessione
     
@@ -70,4 +69,3 @@ def receiving_connections(sock_listen):
  
 
 receiving_connections(sock_listen)
-
