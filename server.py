@@ -1,67 +1,35 @@
-import socket
-from threading import Thread
+#!/usr/bin/env python3
+import socket #importiamo il pacchetto socket
 
-SERVER_ADDRESS = '127.0.0.1'
-SERVER_PORT = 22224
-sock_listen = socket.socket() 
-sock_listen.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-sock_listen.bind((SERVER_ADDRESS, SERVER_PORT))
-sock_listen.listen(5)
-print("Il server ascolta su: " + str((SERVER_ADDRESS, SERVER_PORT)))
-protocollo=["SYN","SYN ACK","ACK with data","ACK for data"]
-while True:
-    sock_service,addr_client = sock_listen.accept()
-    print("\nConnesione ricevuta da " + str(addr_client))#stampo
-    print("\nCreazione di thread per gestire le richieste")
-    print("In attesa di ricevere dati ")
-    step=0
+SERVER_ADDRESS = '127.0.0.1' #indirizzo server
+SERVER_PORT = 22224 #porta server
 
-    while True:#iniza il  while
-        data = sock_service.recv(2048)
-        if not data:
-            print("fine data client.")
-            break
+sock_listen = socket.socket() #
+sock_listen.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) #
+sock_listen.bind((SERVER_ADDRESS, SERVER_PORT)) #
+sock_listen.listen(5) #
+
+print("Server in ascolto su %s." % str((SERVER_ADDRESS, SERVER_PORT))) #il server è in ascolto e in grado di ricevere richieste di connessione
+protocollo= ["SYN", "SYN ACK", "ACK with data", "ACK for data"]
+
+while True: #se il server è in ascolto esegue i comandi
+    sock_service, addr_client = sock_listen.accept() #acetta la connessione con il client e rimane in ascolto per ricevere i dati
+    print("\nConnessione ricevuta da " + str(addr_client))
+    print("\nAspetto di ricevere i dati ")
+    while True: #se la connessione è attiva esegue i comandi
+        dati = sock_service.recv(2048) #aspetta la richiesta dal client
+        if not dati: #controlla che dai abbia un valore
+            print("Fine dati dal client. Reset")
+            break #se dati non ha valore chiude la connessione
         
-        data = data.decode()
-        print("\nRicevuto da " +  str(addr_client) + ": '%s'" %data)
-        if data=='0':
-            print("Chiusura connessione con : " + str(addr_client))
-            break
-        #end if
-        separator = data.split(';')
-        if separator[0] == "piu":
-            ris = (float(separator[1]) + float(separator[2]))
-        #end if
-        if separator[0] == "meno":
-            ris = (float(separator[1]) - float(separator[2]))
-        #end if
-        if separator[0] == "per":
-            ris = (float(separator[1]) * float(separator[2]))
-        #end if
-        if separator[0] == "diviso":
-            if separator[2] == '0':
-                ris = str(separator[1]) + " / " + str(separator[2]) +  "non è possibile"
-                data = "Risponde a : " + str(addr_client) + ".\n" + str(ris)
-            else:
-                ris = (float(separator[1]) / float(separator[2]))
-            
-       
-        data = "Rispondi a : " + str(addr_client) + ".\n il risulato tra  " + str(separator[1]) + " and " + str(separator[2]) + " with the " + str(separator[0]) + " is: " + str(ris)
-        data = data.encode()
-        sock_service.send(data)
-    
+        dati = dati.decode() #se dati ha valore lo decodifica
+        print("Ricevuto: " + dati + " - " + protocollo[int(dati)])
+        dati=int(dati)+1
+        dati=str(dati)
+        
+        print("Invio: " + dati + " - " + protocollo[int(dati)])
+        dati = dati.encode() #codifica la risposta
 
-def receiving_connections(sock_listen):
-    
-    socket_listen(sock_listen, SERVER_ADDRESS, SERVER_PORT)
-    while True:#inizi il  while
-        sock_service, addr_client = sock_listen.accept()
-        connected(addr_client)
-        try:
-            Thread(target = operation, args = (sock_service, addr_client)).start()
-        except:
-            print("The thread doesn't run")
-            sock_service.close()
- 
+        sock_service.send(dati) #invia i dati codificati
 
-receiving_connections(sock_listen)
+    sock_service.close() #fine ascolto del server
