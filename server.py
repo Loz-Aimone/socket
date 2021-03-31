@@ -3,23 +3,19 @@ from threading import Thread
 
 SERVER_ADDRESS = '127.0.0.1'
 SERVER_PORT = 22224
-sock_listen = socket.socket()
-
-def socket_listen(sock_listen, SERVER_ADDRESS, SERVER_PORT):#parte il  socket_listen
-    
-    sock_listen.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    sock_listen.bind((SERVER_ADDRESS, SERVER_PORT))
-    sock_listen.listen(5)
-    print("Il server ascolta su: " + str((SERVER_ADDRESS, SERVER_PORT)))
-
-def connected (addr_client):#parte la connessione
-    
+sock_listen = socket.socket() 
+sock_listen.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+sock_listen.bind((SERVER_ADDRESS, SERVER_PORT))
+sock_listen.listen(5)
+print("Il server ascolta su: " + str((SERVER_ADDRESS, SERVER_PORT)))
+protocollo=["SYN","SYN ACK","ACK with data","ACK for data"]
+while True:
+    sock_service,addr_client = sock_listen.accept()
     print("\nConnesione ricevuta da " + str(addr_client))#stampo
     print("\nCreazione di thread per gestire le richieste")
     print("In attesa di ricevere dati ")
+    step=0
 
-def operation (sock_service, addr_client):
-   
     while True:#iniza il  while
         data = sock_service.recv(2048)
         if not data:

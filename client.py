@@ -4,11 +4,14 @@ import socket
 SERVER_ADDRESS = '127.0.0.1'
 SERVER_PORT = 22224
 sock_service = socket.socket()
-
-def socket_connect (sock_service, SERVER_ADDRESS, SERVER_PORT):
+sock_service.connect((SERVER_ADDRESS, SERVER_PORT))
+#def socket_connect (sock_service, SERVER_ADDRESS, SERVER_PORT):
   
-    sock_service.connect((SERVER_ADDRESS, SERVER_PORT))
-    print("Connessione a: " + str((SERVER_ADDRESS, SERVER_PORT)))
+  
+print("Client connesso a: " + str((SERVER_ADDRESS, SERVER_PORT)))
+protocollo = ["SYN","SYN ACK","ACK with data","ACK for data"]
+step = 0
+dati = str(step)
 
 def input_data():
 
@@ -37,6 +40,5 @@ def input_data():
         print("Ricevuto dal server:")
         print(data + '\n')
    
-socket_connect(sock_service, SERVER_ADDRESS, SERVER_PORT)
-input_data()
+
 sock_service.close()
